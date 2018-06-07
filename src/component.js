@@ -5,14 +5,13 @@ class Component {
     }
 
     setState(partialState) {
-        this.state = Object.assign({}, this.state, partialState);
-        updateInstance(this.__internalInstance);
+        scheduleUpdate(this, partialState);
     }
 }
 
-function updateInstance(internalInstance) {
-    const parentDom = internalInstance.dom.parentDom;
-    const element = internalInstance.element;
-    reconcile(parentDom, internalInstance, element);
+function createInstance(fiber) {
+    const instance = new fiber.type(fiber.props);
+    instance.__fiber = fiber;
+    return instance;
 }
 
