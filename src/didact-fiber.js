@@ -23,3 +23,24 @@ function scheduleUpdate(instance, partialState) {
     });
     requestIdleCallback(performWork);
 }
+
+const ENOUGH_TIME = 1;
+
+function performWork(deadline) {
+    workLoop(deadline);
+    if (nextUnitOfWork || updateQueue.length > 0) {
+        requestIdleCallback(performWork);
+    }
+}
+
+function workLoop(deadline) {
+    if(!nextUnitOfWork) {
+        reserNextUnitOfWork();
+    }
+    while (nextUnitOfWork && deadline.timeRemaining() > ENOUGH_TIME) {
+        nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    }
+    if (pendingCommit) {
+        commitAllWork(pendingCommit);
+    }
+}
