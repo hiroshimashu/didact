@@ -44,3 +44,50 @@ function workLoop(deadline) {
         commitAllWork(pendingCommit);
     }
 }
+
+function resetNextUnitWork() {
+    const update = updateQueue.shift();
+    if(!update) {
+        return;
+    }
+
+    if(update.partialState) {
+        update.instance.__fiber.partialState = update.partialState;
+    }
+
+    const root = update.from == HOST_ROOT ? update.dom._rootContainerFiber : getRoot(update.instace.__fiber);
+
+    nextUnitOfWork = {
+        tag: HOST_ROOT,
+        stateNode: update.dom || root.stateNode,
+        props: update.newProps || root.props,
+        alternate: root
+    };
+}
+
+function getRoot(fiber) {
+    let node = fiber;
+    while (node.parent) {
+        node = node.parent;
+    }
+    return node;
+}
+
+
+function performUnitOfWork(wipFiber) {
+    beginWork(wipFiber);
+    if (wipFiber.child) {
+        return wipFiber.child;
+    }
+
+    let uow = wipFiber;
+    while (uow) {
+        completeWork(uow);
+        if (uow.sibling) {
+            return uow.sibling;
+        }
+        uow = uow.parent;
+    }
+}
+
+
